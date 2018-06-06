@@ -79,8 +79,9 @@ module.exports = (helpMessage, options) => {
 	help = (description ? `\n  ${description}\n` : '') + (help ? `\n${help}\n` : '\n');
 
 	const showHelp = code => {
-		console.log(help);
-		process.exit(typeof code === 'number' ? code : 2);
+		code = typeof code === 'number' ? code : 2;
+		console[code ? 'error' : 'log'](help);
+		process.exit(code);
 	};
 
 	const showVersion = () => {

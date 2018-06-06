@@ -1,6 +1,7 @@
 import test from 'ava';
 import indentString from 'indent-string';
 import execa from 'execa';
+import sinon from 'sinon';
 import pkg from './package';
 import m from '.';
 
@@ -172,5 +173,35 @@ test('accept help and options', t => {
 	}).flags, {
 		foo: true,
 		f: true
+	});
+});
+
+test('showHelp exits with return code', t => {
+	const cli = m(`whatever`);
+
+	function showHelp(code) {
+		const exit = sinon.stub(process, 'exit');
+		const log = sinon.spy(console, 'log');
+		const error = sinon.spy(console, 'error');
+		try {
+			cli.showHelp(code);
+		} catch (e) {
+			console.log(e);
+		}
+		process.exit.restore();
+		console.log.restore();
+		console.error.restore();
+		return {exit, log, error};
+	}
+
+	[
+		[undefined, [2, false, true]],
+		[1, [1, false, true]],
+		[0, [0, true, false]]
+	].forEach(([codeFixture, [exitCode, logCalled, errorCalled]]) => {
+		const {exit, log, error} = showHelp(codeFixture);
+		t.true(exit.calledWith(exitCode));
+		t.is(logCalled, log.called);
+		t.is(errorCalled, error.called);
 	});
 });
